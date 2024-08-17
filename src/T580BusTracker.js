@@ -139,11 +139,18 @@ const BusTracker = () => {
                 // const busLocations = filteredBusData.map(bus => bus.busstop_id);
                 const busLocations = filteredBusData.filter(bus => {
                     // Exclude if it's at the first/second stop but just not on a recent trip
-                    if (bus.busstop_id === orderedStopIds[0] || bus.busstop_id === orderedStopIds[1]){
+                    if (bus.busstop_id === orderedStopIds[0] || bus.busstop_id === orderedStopIds[2]){
                         try{
                             let tripTime = (bus.trip_no).substring(8, 12);
+                            const now = new Date();
+                            const options = { timeZone: 'Asia/Singapore', hour12: false, hour: '2-digit', minute: '2-digit' };
+                            const currentTime = now.toLocaleTimeString('en-GB', options).replace(":", "");
+                            console.log(parseInt(tripTime) +" "+ parseInt(currentTime));
 
-                            if (parseInt(tripTime) > parseInt(time) + 5 || parseInt(tripTime) < parseInt(time) - 10){
+                            if (parseInt(tripTime)-5 >= parseInt(currentTime) || parseInt(tripTime) + 30 <= parseInt(currentTime)){
+                                // Case to exclude
+                                // trip 1940 now 1935
+                                // trip 1940 now 2010
                                 return false;
                             }
                         }catch(err){
