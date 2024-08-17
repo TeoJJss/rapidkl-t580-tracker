@@ -1,0 +1,88 @@
+/* Center the table and give it some space around */
+.table-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+/* Style the table */
+table {
+    border-collapse: collapse;
+    width: 50%; /* Adjust the width as needed */
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Add border to table and cells */
+table, th, td {
+    border: 1px solid #ddd; /* Light gray border */
+}
+
+/* Add padding to table cells */
+th, td {
+    padding: 10px;
+}
+
+/* Add background color to table headers */
+th {
+    background-color: #f4f4f4; /* Light gray background */
+}
+
+td {
+    font-size: 17px; /* Increase the size of emojis */
+}
+
+td.emoji{
+    font-size: 30px;
+}
+
+span.update{
+    font-size: 12px;
+}
+
+tr.stop-1004139 {
+    color: blue;
+    font-weight: bold;
+}
+
+tr.stop-1001792 {
+    color: brown;
+    font-weight: bold;
+}
+
+span.total-bus {
+    color: chocolate;
+}
+
+span.ontrip-bus {
+    color: green;
+}
+
+span.offtrip-bus {
+    color: rgb(234, 153, 3);
+}
+
+div.table-header > span{
+    font-weight: bold;
+}
+
+span.speed{
+    font-size: 12px;
+}
+
+tr.terminal-stop {
+    padding: 5px;
+    margin-left: 3px;
+    color: rgb(255, 0, 174);
+}
+
+img.lrt-icon {
+    width: 3%;
+}
+
+.bus-info {
+    display: flex;
+    flex-direction: column; /* Arrange child elements vertically */
+    align-items: center; /* Align items to the start of the container */
+    gap: 7px;
+}
