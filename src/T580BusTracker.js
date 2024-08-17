@@ -138,12 +138,12 @@ const BusTracker = () => {
 
                 // const busLocations = filteredBusData.map(bus => bus.busstop_id);
                 const busLocations = filteredBusData.filter(bus => {
-                    // Exclude if it's at the first stop but just finish a trip
-                    if (bus.busstop_id === orderedStopIds[0]){
+                    // Exclude if it's at the first/second stop but just not on a recent trip
+                    if (bus.busstop_id === orderedStopIds[0] || bus.busstop_id === orderedStopIds[1]){
                         try{
                             let tripTime = (bus.trip_no).substring(8, 12);
 
-                            if (parseInt(tripTime) > parseInt(time) + 5){
+                            if (parseInt(tripTime) > parseInt(time) + 5 || parseInt(tripTime) < parseInt(time) - 10){
                                 return false;
                             }
                         }catch(err){
