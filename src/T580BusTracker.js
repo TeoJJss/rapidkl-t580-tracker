@@ -235,8 +235,11 @@ const BusTracker = () => {
 
                 const busLastUpdateDict = filteredBusData.reduce((acc, bus) => {
                     const busLatLng = { latitude: bus.latitude, longitude: bus.longitude };
-                    const stopLatLng = { latitude: busStopsCoor[bus.busstop_id][0], longitude: busStopsCoor[bus.busstop_id][1] };
-                    const busDist = getDistance(busLatLng, stopLatLng);
+                    const busDist = 1;
+                    if (bus.latitude && bus.longitude){
+                        const stopLatLng = { latitude: busStopsCoor[bus.busstop_id][0], longitude: busStopsCoor[bus.busstop_id][1] };
+                        busDist = getDistance(busLatLng, stopLatLng);
+                    }
 
                     acc[bus.busstop_id] = [bus.dt_gps, bus.bus_no, bus.speed, busDist];
                     return acc;
