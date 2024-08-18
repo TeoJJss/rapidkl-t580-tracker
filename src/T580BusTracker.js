@@ -219,7 +219,7 @@ const BusTracker = () => {
                     if (bus.busstop_id !== null) {
                         if (prevStopId) {
                             const dist = Math.abs(orderedStopIds.indexOf(bus.busstop_id) - orderedStopIds.indexOf(prevStopId));
-                            if (dist > 8) { // abnormal change of GPS
+                            if (dist > 8 && bus.busstop_id !== '1001792') { // abnormal change of GPS (exclusion if the bus at LRT BKT JALIL)
                                 console.log("abnormal GPS " + bus.bus_no + ", use back prev " + prevStopId);
                                 bus.busstop_id = prevStopId;
                             } else {
