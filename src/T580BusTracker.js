@@ -183,8 +183,8 @@ const BusTracker = () => {
                 
                     // If busstop_id is null, use the value from the cookie
                     if (bus.busstop_id === null) {
-                        console.log("use cookie: " + prevStopId);
                         if (prevStopId) {
+                            console.log("use cookie: " + prevStopId);
                             bus.busstop_id = prevStopId;
                         }
                     }
@@ -223,10 +223,16 @@ const BusTracker = () => {
                                 console.log("abnormal GPS " + bus.bus_no + ", use back prev " + prevStopId);
                                 bus.busstop_id = prevStopId;
                             } else {
-                                document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;
+                                if (prevStopId !== bus.busstop_id){
+                                    console.log("1. new cookie for "+ bus.bus_no + " "+ bus.busstop_id);
+                                    document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;   
+                                }
                             }
                         } else {
-                            document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;
+                            if (prevStopId !== bus.busstop_id){
+                                console.log("2. new cookie for "+ bus.bus_no + " "+ bus.busstop_id);
+                                document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;
+                            }
                         }
                     }
                 
