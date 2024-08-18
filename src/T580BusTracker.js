@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 import pako from 'pako';
+import { getDistance } from 'geolib';
 import './BusTracker.css';
 
 const routeNo = 'T5800';
@@ -57,6 +58,42 @@ const schedules = [
     "2030", "2140", "2250", "2400"
 ]
 
+const busStopsCoor = {
+    "1006170": [3.061769, 101.669737],
+    "1006173": [3.058376, 101.674439],
+    "1000044": [3.056044, 101.673215],
+    "1003940": [3.054211, 101.669275],
+    "1000160": [3.053789, 101.688308],
+    "1001791": [3.058519, 101.691519],
+    "1000612": [3.064724, 101.691842],
+    "1000613": [3.064294, 101.691108],
+    "1000574": [3.064210, 101.687816],
+    "1002306": [3.063842, 101.688911],
+    "1000103": [3.064179, 101.690972],
+    "1001580": [3.066401, 101.690988],
+    "1001564": [3.066817, 101.692536],
+    "1003926": [3.068718, 101.695328],
+    "1002884": [3.069572, 101.696299],
+    "1002907": [3.069741, 101.699385],
+    "1003024": [3.067680, 101.700770],
+    "1000122": [3.064168, 101.699606],
+    "1000611": [3.063937, 101.697406],
+    "1000449": [3.063836, 101.695435],
+    "1001792": [3.058047, 101.691406],
+    "1000161": [3.051823, 101.688705],
+    "1000984": [3.047908, 101.688859],
+    "1001008": [3.048086, 101.691714],
+    "1002031": [3.051657, 101.697283],
+    "1004139": [3.055012, 101.702792],
+    "1000176": [3.052423, 101.700636],
+    "1002032": [3.051317, 101.697391],
+    "1004159": [3.048593, 101.692752],
+    "1001978": [3.047402, 101.688837],
+    "1001072": [3.050626, 101.679712],
+    "1000111": [3.055941, 101.675214],
+    "1006172": [3.058659, 101.673981]
+};
+
 // const lrtStops = ['1006170', '1001791', '1001792']
 
 const getNextBusTime = (schedules, numBus) => {
@@ -66,20 +103,23 @@ const getNextBusTime = (schedules, numBus) => {
     var skipBus = 1;
 
     let nearestTime = schedules[0];
-    if (numBus === 1) {
+    if (numBus === 1 && parseInt(currentTime) < 2030) { // If the route missing 1 bus
         skipBus = 2;
-    } else if (numBus === 0) {
-        skipBus = 0;
-    }
+    } 
     for (let i = 0; i < schedules.length; i += skipBus) {
         if (parseInt(currentTime) <= parseInt(schedules[i])) {
             nearestTime = schedules[i];
-            console.log("nearest");
             break;
         }
     }
 
     return nearestTime;
+};
+
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
 };
 
 const BusTracker = () => {
@@ -131,38 +171,74 @@ const BusTracker = () => {
                 const busData = JSON.parse(decompressedData); // Parse JSON
                 console.log("BUS DATA: " + decompressedData);
                 const newBusData = busData.filter(bus => bus.trip_rev_kind === '00' || bus.trip_rev_kind === '99');
-                const filteredBusData = newBusData.filter(bus => bus.busstop_id !== null && bus.trip_no !== null);
+                const filteredBusData = newBusData.filter(bus => bus.trip_no !== null);
                 const time = getNextBusTime(schedules, newBusData.length);
                 const onBusLength = busData.filter(bus => bus.trip_rev_kind === '00').length;
                 const offBusLength = busData.filter(bus => bus.trip_rev_kind === '99').length;
 
                 // const busLocations = filteredBusData.map(bus => bus.busstop_id);
                 const busLocations = filteredBusData.filter(bus => {
+                    const prevStopId = getCookie(bus.bus_no);
+                    console.log((bus.bus_no) + " prev " + prevStopId);
+                
+                    // If busstop_id is null, use the value from the cookie
+                    if (bus.busstop_id === null) {
+                        console.log("use cookie: " + prevStopId);
+                        if (prevStopId) {
+                            bus.busstop_id = prevStopId;
+                        }
+                    }
+                
                     // Exclude if it's at the first/second stop but just not on a recent trip
-                    if (bus.busstop_id === orderedStopIds[0] || bus.busstop_id === orderedStopIds[1]){
-                        try{
+                    if (bus.busstop_id === orderedStopIds[0] || bus.busstop_id === orderedStopIds[1]) {
+                        try {
                             let tripTime = (bus.trip_no).substring(8, 12);
                             const now = new Date();
                             const options = { timeZone: 'Asia/Singapore', hour12: false, hour: '2-digit', minute: '2-digit' };
                             const currentTime = now.toLocaleTimeString('en-GB', options).replace(":", "");
-                            console.log(parseInt(tripTime) +" "+ parseInt(currentTime));
-
-                            if (parseInt(tripTime)-5 >= parseInt(currentTime) || parseInt(tripTime) + 30 <= parseInt(currentTime)){
-                                // Case to exclude
+                            console.log(parseInt(tripTime) + " " + parseInt(currentTime));
+                
+                            if (parseInt(tripTime) - 5 >= parseInt(currentTime) || parseInt(tripTime) + 30 <= parseInt(currentTime)) {
+                                // Case to exclude or use previous stop id
                                 // trip 1940 now 1935
                                 // trip 1940 now 2010
-                                console.log("hide");
-                                return false;
+                                if (prevStopId) {
+                                    console.log(bus.bus_no + " use prev " + prevStopId);
+                                    bus.busstop_id = prevStopId;
+                                } else {
+                                    console.log("hide " + bus.bus_no);
+                                    return false;
+                                }
                             }
-                        }catch(err){
+                        } catch (err) {
                             console.error(err);
                         }
                     }
-                    
+                
+                    // Store in cookie if not null
+                    if (bus.busstop_id !== null) {
+                        if (prevStopId) {
+                            const dist = Math.abs(orderedStopIds.indexOf(bus.busstop_id) - orderedStopIds.indexOf(prevStopId));
+                            if (dist > 8) { // abnormal change of GPS
+                                console.log("abnormal GPS " + bus.bus_no + ", use back prev " + prevStopId);
+                                bus.busstop_id = prevStopId;
+                            } else {
+                                document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;
+                            }
+                        } else {
+                            document.cookie = `${bus.bus_no}=${bus.busstop_id}; max-age=300`;
+                        }
+                    }
+                
                     return true;
-                }).map(bus => bus.busstop_id);;
+                }).map(bus => bus.busstop_id);
+
                 const busLastUpdateDict = filteredBusData.reduce((acc, bus) => {
-                    acc[bus.busstop_id] = [bus.dt_gps, bus.bus_no, bus.speed];
+                    const busLatLng = { latitude: bus.latitude, longitude: bus.longitude };
+                    const stopLatLng = { latitude: busStopsCoor[bus.busstop_id][0], longitude: busStopsCoor[bus.busstop_id][1] };
+                    const busDist = getDistance(busLatLng, stopLatLng);
+
+                    acc[bus.busstop_id] = [bus.dt_gps, bus.bus_no, bus.speed, busDist];
                     return acc;
                 }, {});
 
@@ -228,6 +304,9 @@ const BusTracker = () => {
                                             <span className='speed'>{lastUpdateDict[stopId][1]} : {lastUpdateDict[stopId][2]} km/h</span>
                                             <span className='update'>
                                                 Update: {lastUpdateDict[stopId][0]}
+                                            </span>
+                                            <span className='distance'>
+                                                {lastUpdateDict[stopId][3]} meters ahead
                                             </span>
                                         </div>
                                     ) : ""}
