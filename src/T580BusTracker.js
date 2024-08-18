@@ -252,7 +252,7 @@ const BusTracker = () => {
                 setLastUpdateDict(busLastUpdateDict);
                 setNumBus(newBusData.length);
             } catch (error) {
-                console.error('Error processing data:', error);
+                console.error('Error processing data:', error.stack);
             }
         });
 
