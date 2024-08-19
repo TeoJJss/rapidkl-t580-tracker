@@ -11,6 +11,7 @@ const busStopsDict = {
     "1006173": "KL1291 KM1 BUKIT JALIL",
     "1000044": "KL2020 AFC (OPP)",
     "1003940": "KL2026 AURORA PLACE",
+    "1002501": "Lebuhraya Bukit Jalil (NO STOP)",
     "1000160": "KL1293 APARTMENT ARENA GREEN",
     "1001791": "KL151 LRT BKT JALIL",
     "1000612": "KL1320 ENDAH VILLA CONDOMINIUM",
@@ -43,11 +44,11 @@ const busStopsDict = {
 };
 
 const orderedStopIds = [
-    "1006173", "1000044", "1003940", "1000160", "1001791",
+    "1006173", "1000044", "1003940", "1002501", "1000160", "1001791",
     "1000612", "1000613", "1000574", "1002306", "1000103", "1001580",
     "1001564", "1003926", "1002884", "1002907", "1003024", "1000122",
     "1000611", "1000449", "1001792", "1000161", "1000984", "1001008",
-    "1002031", "1004139", "1000176", "1002032", "1004159", "1001978",
+    "1004159", "1002031", "1004139", "1000176", "1002032", "1001978",
     "1001072", "1000111", "1006172", "1006170"
 ];
 
@@ -63,6 +64,7 @@ const busStopsCoor = {
     "1006173": [3.058376, 101.674439],
     "1000044": [3.056044, 101.673215],
     "1003940": [3.054211, 101.669275],
+    "1002501": [3.058611, 101.691944],
     "1000160": [3.053789, 101.688308],
     "1001791": [3.058519, 101.691519],
     "1000612": [3.064724, 101.691842],
@@ -160,7 +162,7 @@ const BusTracker = () => {
         });
 
         socket.on('onFts-client', (data) => {
-            try {
+            // try {
                 const binaryString = atob(data);
                 const binaryLen = binaryString.length;
                 const bytes = new Uint8Array(binaryLen);
@@ -243,8 +245,10 @@ const BusTracker = () => {
                     const busLatLng = { latitude: bus.latitude, longitude: bus.longitude };
                     var busDist = 1;
                     if (bus.latitude && bus.longitude){
-                        const stopLatLng = { latitude: busStopsCoor[bus.busstop_id][0], longitude: busStopsCoor[bus.busstop_id][1] };
-                        busDist = getDistance(busLatLng, stopLatLng);
+                        if (busStopsCoor[bus.busstop_id]){
+                            const stopLatLng = { latitude: busStopsCoor[bus.busstop_id][0], longitude: busStopsCoor[bus.busstop_id][1] };
+                            busDist = getDistance(busLatLng, stopLatLng);
+                        }
                     }
 
                     acc[bus.busstop_id] = [bus.dt_gps, bus.bus_no, bus.speed, busDist];
@@ -257,9 +261,9 @@ const BusTracker = () => {
                 setBusStops(busLocations);
                 setLastUpdateDict(busLastUpdateDict);
                 setNumBus(newBusData.length);
-            } catch (error) {
-                console.error('Error processing data:', error.stack);
-            }
+            // } catch (error) {
+            //     console.error('Error processing data:', error.stack);
+            // }
         });
 
         return () => {
